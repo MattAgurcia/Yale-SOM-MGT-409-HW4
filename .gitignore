@@ -1,0 +1,29 @@
+# Local-only data pack: place it at data/ (see README.md). Never commit it.
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets: copy .env.example to .env and fill in your key. Never commit the real .env.
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Front end (npm install / npm run build recreate these)
+node_modules/
+frontend/dist/
+
+# Written only if output/audit_trail.json is ever damaged (see output/harness.md, §13.2)
+output/audit_trail.unappended.jsonl
+
+# OS and editor files
+.DS_Store
+.vscode/
+.idea/

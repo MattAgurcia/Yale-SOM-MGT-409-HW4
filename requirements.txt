@@ -1,0 +1,9 @@
+# Campus Customs — HW4 backend
+# Python 3.11+ (developed on 3.14). Install with: pip install -r requirements.txt
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pillow>=10.0  # cleans the product photos for a white page
+argon2-cffi>=23.1  # Argon2id password hashing
+pydantic-ai-slim[openai]>=2.54  # the agent team (OpenAI models via Portkey); needs its capability hooks
+python-dotenv>=1.0  # reads PORTKEY_API_KEY from .env
