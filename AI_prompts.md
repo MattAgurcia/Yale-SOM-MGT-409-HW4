@@ -275,6 +275,8 @@ My prompt left out the output/design.md write-up this problem asks for (what cha
 
 4. Can you grade the project with what's on '/Users/matthewagurcia/Documents/MBA/Fa26/MGT-409_AI/hw 4/instructions'. Figure out if it's just a typo and make sure everything else is done to a T.
 
+5. kill that stray uvicorn process on port 8000
+
 **Notes:**
 
 After the first push, design.md was still a guess because my Problem 10 prompt never asked for it, so I asked about it and then had the whole project graded against the assignment pages to close any remaining gaps.
