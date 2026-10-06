@@ -901,7 +901,7 @@ ChatWidget ──POST /api/chat/stream {message, page}──▶ main.py ──�
                                                                     │
   Dan (concierge) ── ask_scout("hoodies") ──▶ Scout                 │
        search_products("hoodies", limit=30)  ◀── run up front, in code: no model call
-       → 27 matches, in ranked order, recorded for THIS trip only (deps.scout_ids);
+       → 27 matches, in ranked order, recorded for THIS trip only (a fresh search_order; deps.scout_ids after drop_ids);
          every id also goes into deps.searched_ids for the checks
        (a clean search needs no Scout model at all; a partial one, like "pink hoodies",
         gets one cheap call to judge the matches and pick three highlights)
@@ -1010,7 +1010,7 @@ Step by step:
 | A showcase may list 0–30 ids with a 1–60 character title. An empty list (the usual case) means "everything the Scout found on this trip". | The `models.Showcase` type; `main.py` fills an empty list from `ShopDeps.scout_ids` |
 | An empty showcase needs a Scout trip that found something; listed ids must come from a search in the same turn | `agent.ungrounded_showcase`, an output validator. A failing reply goes back to Dan; if it never passes, the shopper gets a 502 and nothing reaches the page. |
 | The shelf holds only the latest Scout trip's hits, in the search's order, minus the Scout's `drop_ids` | `ask_scout` (a fresh `search_order` per trip) |
-| A shelf for something the shop doesn't stock says so in its title ("Closest to …") | `ask_scout` (`NOT_CARRIED_HINTS`) |
+| A shelf for something the shop doesn't stock says so in its title ("Closest to …") | `ask_scout` sets the Scout's title (`NOT_CARRIED_HINTS`); Dan's prompt has him reuse the Scout's title for the shelf |
 | Cards are built from the database, not from the model: unknown ids dropped, price and stock current, order kept | `main.py` (`load_products`) |
 | No showcase for a question about one product, a follow-up, or no matches | The prompt. With `showcase: null` the page is left as it is. |
 | A new showcase replaces the old one; Clear removes it | `ChatContext` |
@@ -1089,10 +1089,14 @@ himself):
   `showcase` null for a question about one product.
 - **"When the shop doesn't have it".** If the Scout reports `unmatched` words
   ("pink"), say plainly that the shop doesn't carry that, then show the closest
-  real options: as suggestions ("Closest we have") or on the shelf, whose title
-  then starts "Closest to".
+  real options: as suggestions ("Closest we have") or on the shelf. The prompt
+  doesn't spell out "Closest to": the shelf reuses the Scout's title, which
+  `ask_scout` has already set to "Closest to …" (§5.2).
 
-### 5.6 How it was verified (2026-10-05)
+### 5.6 How it was verified at Problem 7 (before the Scout)
+
+These checks ran when Dan still searched himself. The Scout flow above was
+checked again in the grading pass (§15.3).
 
 **Automated.** `pytest -q` in the development folder's `backend/`: 54 passed. The new tests check
 that:
@@ -1901,7 +1905,7 @@ Why four values rather than a yes/no flag:
 - **Three different actions.** The code needs to reset strikes, add a strike, or end the chat.
 - **A clearer audit trail.** Off-topic and manipulation have the same effect, but they stay separate so the audit trail shows which one was declined.
 
-**`ChatSession`** (Problem 12): whether this browser's chat with Dan is open. `backend/main.py` (Chat safety) builds it from the `chat_safety` table (`session_state`, `record`, `end_chat`). `GET /api/chat/session` returns it, and so does every `ChatResponse`.
+**`ChatSession`** (Problem 12): whether this browser's chat with Dan is open. `backend/main.py` (Chat safety) builds it from the `chat_safety` table (`session_state`, `record_safety_flag`, `end_chat`). `GET /api/chat/session` returns it, and so does every `ChatResponse`.
 
 | Field | Type / limits | Why |
 |---|---|---|
@@ -2374,8 +2378,8 @@ message ─▶ chat already ended? ──yes──▶ 423 "This chat has ended. 
 
 - **What gets locked.** A chat is tracked under up to two subjects:
   - its **chat session**: a random id in the `cc_chat` cookie (HttpOnly,
-    SameSite=Lax, 30 days; `Secure` with `COOKIE_SECURE=true`). Only its
-    The first 32 hex characters of its SHA-256 are stored, never the id itself.
+    SameSite=Lax, 30 days; `Secure` with `COOKIE_SECURE=true`). Only the first
+    32 hex characters of its SHA-256 are stored, never the id itself.
   - for a logged-in shopper, the **account** (`user:<id>`).
 
   Ending a chat locks both, so the lock follows the account to another
@@ -2473,7 +2477,7 @@ comes back into the agent's context; the audit trail keeps the record.
   (PydanticAI's `ContentFilterError`). Both are handled the same way. Portkey's
   error doesn't say which rule fired.
 - **Distress or not.** `agent.ask` checks whether the message sounds like
-  distress (`main.sounds_like_distress`).
+  distress (`agent.sounds_like_distress`).
   - If it does, the shopper gets `CARE_REPLY`, flagged `ok`, with no strike:
     911 in an emergency, call or text 988, and Yale Mental Health & Counseling.
   - Otherwise the shopper gets the in-voice refusal (`BLOCKED_REPLY`), which
@@ -2816,12 +2820,12 @@ Why these numbers:
 |---|---|
 | Dan: 8 model calls | Room for a round of lookups, a hand-off, the answer and a grounding retry (§4.4). The code comment says measured turns use 2–3. Since Problem 12 the audit trail shows 1–3, and off-topic replies use 1. It was 6 in Problem 5. |
 | Dan: 12 tool calls | The audit trail shows 0–3 per turn. Asking about three products at once takes 9 calls (find, price and stock for each), which still fits. A runaway loop does not. |
-| Dan: 60,000 tokens | A cost backstop, not a working limit. The code comment says it is "about 5x the largest measured turn (12.3k tokens)", from the benchmarks. The prompt has grown since: each call to Dan now starts at about 5.8k input tokens. The largest turn in the audit trail is 18.2k tokens over 3 calls, still under a third of the cap. |
+| Dan: 60,000 tokens | A cost backstop, not a working limit. The code comment says it is "about 5x the largest measured turn (12.3k tokens)", from the benchmarks. The prompt has grown since: each call to Dan now starts at about 5.8k input tokens. The largest turn in the audit trail is about 18.6k tokens over 3 calls, still under a third of the cap. |
 | Dan: 1,000 reply tokens | The code comment says "measured replies use 100-400, so no essays". The largest single response from Dan in the audit trail is 144 output tokens. |
 | Teammates: 4 model calls | The lookup happens up front, so a teammate usually needs one call. The audit trail shows the Scout at 0–1 calls and the Stylist at 1. Four calls leave room for a second search plus the 2 output retries. |
 | Teammates: 15,000 tokens | About 6x the largest teammate run in the audit trail (a Scout run: 2,231 in + 217 out). |
 | Teammates: 800 reply tokens | Reports are short by design: the `ScoutReport` docstring notes "output tokens are the slow part". The largest in the audit trail is 498 (the Scout). |
-| Memory clerk: 2 calls, 8,000 tokens | One call plus its one output retry. Its largest run in the audit trail was 678 in + 106 out. Its input is bounded too: at most 30 messages, each cut to 600 characters (§14.3). |
+| Memory clerk: 2 calls, 8,000 tokens | One call plus its one output retry. Its largest run in the audit trail was 701 in + 166 out. Its input is bounded too: at most 30 messages, each cut to 600 characters (§14.3). |
 | Scout: 2 trips | Found in Problem 11's live check. On an off-topic message, Dan kept sending the Scout out until he hit his request limit (§9). |
 
 What the shopper sees and what the audit trail records when a limit is hit:
@@ -3096,11 +3100,13 @@ How the pieces fit:
 |---|---|
 | `.env` | It holds the real `PORTKEY_API_KEY`. `.env.example` has placeholders only. |
 | `data/` (`campus_customs.db`, `products/`) | The local-only data pack. The database also holds shoppers' hashed passwords and chats. |
-| The 178 automated tests and `benchmark_chat.py` (with `output/benchmarks/`) | The required layout has no place for them. They stay in the development folder. The tests were pointed at the merged backend and all 178 pass (§15.3). |
+| The automated tests (182 at submission) and `benchmark_chat.py` (with `output/benchmarks/`) | The required layout has no place for them. They stay in the development folder. The tests were pointed at the merged backend and all 178 pass (§15.3). |
 | `backend/TEST_ACCOUNTS.md` | It lists local test accounts' passwords. |
 | `node_modules/`, `frontend/dist/`, `.venv/`, `__pycache__/` | `npm install`, `npm run build` and `pip install` recreate them. |
 
-`.gitignore` covers each of these, plus `*.db`, every `.env.*` except
+The tests, the benchmark and `TEST_ACCOUNTS.md` stay out because they live
+outside `hw4/`. `.gitignore` covers the rest (`.env`, `data/`, the build and
+virtualenv folders), plus `*.db`, every `.env.*` except
 `.env.example`, `.DS_Store`, and the audit trail's side file
 (`output/audit_trail.unappended.jsonl`, §13.2). `requirements.txt` now lists
 only what the app needs to run.
@@ -3117,7 +3123,8 @@ it.
   pointed at `hw4/backend/` through a small shim that maps the old module names
   to the new files, so the tests themselves are unchanged apart from the
   renames. All 178 passed. With one test added (a missing data pack stops the
-  server with a clear message), 179 passed.
+  server with a clear message), 179 passed. With the three shelf tests from
+  the grading pass below, 182 pass.
 - **A clean install.** A brand-new virtualenv installed only
   `requirements.txt`, with no test packages, and ran the backend.
 - **A pristine data pack.** The backend was started on a copy of the database
@@ -3211,7 +3218,8 @@ evidence (97 of 100 after calibration). The fixes that came out of it:
   the features left to `usability.md`.
 - **The storefront screenshots showed the old "Shop all" label**; 24 were
   retaken with "Products". `memory_used.png` is kept from the first run so it
-  stays paired with its token panel (`memory_used_cache.png`).
+  stays paired with its token panel (`memory_used_cache.png`); its caption
+  says so.
 - **Two editing errors in §11 and §13 were fixed.**
 
 ### 15.4 The repository

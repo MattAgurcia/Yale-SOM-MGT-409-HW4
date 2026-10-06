@@ -16,7 +16,7 @@ helper and more motion.
 | **Dan, the bulldog.** An animated SVG mascot: he blinks, tilts his head while thinking and pants after answering. He pops up once per visit with "Woof woof!" and a line for the page, gives a short bark when the chat opens, and offers starter questions (`dan_popup.png`). | A friendly face makes help easy to find and fits a shop for the Bulldogs. Starter questions get people asking. |
 | **A chat that shows its work.** A live view shows Dan handing tasks to his Scout and Stylist, with sparks and optional "pew" sounds. Results land on the page as a shelf of full product cards, not a list in the chat (`agent_team.webp`, `search_cards.png`). | Waiting feels like progress, and every answer is one click from a product page or the cart. |
 | **Motion with a job.** Pages fade in, sections rise as you scroll, cards lift on hover, and an added item flies into the cart. All of it stops under "reduce motion" (`fly_to_cart.webp`). | The site feels alive, and every add is confirmed, without getting in the way. |
-| **Built for phones.** Two-column grids, a filter drawer, a full-screen chat and tap targets at least 48px tall (`mobile_home.png`). | Students shop on their phones. |
+| **Built for phones.** Two-column grids, a filter drawer, a full-screen chat and main buttons at least 48px tall (`mobile_home.png`). | Students shop on their phones. |
 
 **The palette** (`frontend/src/styles.css`): Yale Blue `#00356b`, blue
 `#286dc0` and `#63aaff`, ink `#1d2533`, green `#5f712d`, orange `#bd5319`.

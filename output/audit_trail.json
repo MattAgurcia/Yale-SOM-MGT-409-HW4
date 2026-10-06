@@ -269,5 +269,14 @@
 {"time": "2026-10-06T02:11:59.192Z", "turn": "3b76edde", "event": "loop_end", "agent": "concierge", "stop_reason": "final_result", "model_calls": 2, "tool_calls": 1, "seconds": 6.8},
 {"time": "2026-10-06T02:11:59.194Z", "turn": "3b76edde", "event": "turn_end", "stop_reason": "answered", "safety": "ok", "showcase": 2, "seconds": 6.81},
 {"time": "2026-10-06T02:11:59.197Z", "turn": "3b76edde", "event": "model_call", "agent": "memory_clerk", "model": "gpt-5.6-luna-2026-07-09", "step": 1, "finish_reason": "tool_call", "wants": ["answer"], "tokens": {"in": 701, "cached": 0, "out": 166}, "ms": 2417},
-{"time": "2026-10-06T02:12:01.614Z", "turn": "3b76edde", "event": "loop_end", "agent": "memory_clerk", "stop_reason": "final_result", "model_calls": 1, "tool_calls": 0, "seconds": 2.42}
+{"time": "2026-10-06T02:12:01.614Z", "turn": "3b76edde", "event": "loop_end", "agent": "memory_clerk", "stop_reason": "final_result", "model_calls": 1, "tool_calls": 0, "seconds": 2.42},
+{"time": "2026-10-06T02:27:05.559Z", "turn": "89f464d8", "event": "turn_start", "who": "guest 4ad0df", "page": "/", "message": "what would be the best gift for my father in law"},
+{"time": "2026-10-06T02:27:05.563Z", "turn": "89f464d8", "event": "model_call", "agent": "concierge", "model": "gpt-5.6-terra-2026-07-09", "step": 1, "finish_reason": "tool_call", "wants": ["ask_scout"], "tokens": {"in": 5843, "cached": 5680, "out": 48}, "ms": 2689},
+{"time": "2026-10-06T02:27:08.253Z", "turn": "89f464d8", "event": "tool_call", "agent": "concierge", "tool": "ask_scout", "args": {"request": "gift for father-in-law"}, "status": "ok", "result": "Gifts for Father-in-Law: 4 matches; highlights Yale Dad Hoodie, Yale Dad Crewneck, Yale Law School 1 4 Zip; not carried: gift", "ms": 2763},
+{"time": "2026-10-06T02:27:08.253Z", "turn": "89f464d8", "event": "tool_call", "agent": "scout", "tool": "search_products", "args": {"query": "gift for father-in-law", "limit": 30}, "status": "ok", "result": "4 matches: Yale Law School 1 4 Zip, Yale Dad T Shirt, Yale Dad Hoodie (+1 more); nothing matched gift", "ms": 7, "via": "up-front lookup"},
+{"time": "2026-10-06T02:27:08.264Z", "turn": "89f464d8", "event": "model_call", "agent": "scout", "model": "gpt-5.6-luna-2026-07-09", "step": 1, "finish_reason": "tool_call", "wants": ["answer"], "tokens": {"in": 1371, "cached": 0, "out": 220}, "ms": 2751},
+{"time": "2026-10-06T02:27:11.016Z", "turn": "89f464d8", "event": "loop_end", "agent": "scout", "stop_reason": "final_result", "model_calls": 1, "tool_calls": 0, "seconds": 2.75},
+{"time": "2026-10-06T02:27:11.018Z", "turn": "89f464d8", "event": "model_call", "agent": "concierge", "model": "gpt-5.6-terra-2026-07-09", "step": 2, "finish_reason": "tool_call", "wants": ["answer"], "tokens": {"in": 6020, "cached": 0, "out": 102}, "ms": 2146},
+{"time": "2026-10-06T02:27:13.165Z", "turn": "89f464d8", "event": "loop_end", "agent": "concierge", "stop_reason": "final_result", "model_calls": 2, "tool_calls": 1, "seconds": 7.6},
+{"time": "2026-10-06T02:27:13.167Z", "turn": "89f464d8", "event": "turn_end", "stop_reason": "answered", "safety": "ok", "showcase": 4, "seconds": 7.61}
 ]

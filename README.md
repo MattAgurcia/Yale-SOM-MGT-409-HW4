@@ -56,8 +56,9 @@ The data pack (`data/`) is not in git. Step 1 says where it goes.
 
 - **Python 3.11 or later.** The code uses `datetime.UTC`, added in 3.11. It
   was developed on 3.14.
-- **Node.js and npm.** The front end uses Vite 8, which needs Node
-  `^20.19.0` or `>=22.12.0`. It was developed on Node 26.9.0 and npm 11.19.1.
+- **Node.js 22.22 or later, and npm.** React Router 8 declares Node
+  `>=22.22.0` (Vite 8 alone would accept `^20.19.0` or `>=22.12.0`). It was
+  developed on Node 26.9.0 and npm 11.19.1.
 - **A Portkey API key** that can reach the OpenAI models `gpt-5.6-terra` and
   `gpt-5.6-luna`. Without one the site still works, but the chat does not.
 - **The data pack:** `campus_customs.db` and the `products/` folder of photos.
@@ -214,7 +215,8 @@ origin and the login cookie rides along. Keep the back end running on port
    8 characters, and well-known passwords are refused. The data pack also
    comes with seed test accounts; their passwords are not in this repository.
 3. **Ask Dan "What hoodies do you have?"** Click the bulldog button to open the
-   chat. Matching product cards appear in the chat and at the top of the page.
+   chat. Dan sums them up in the chat and puts every match at the top of the
+   page as product cards, with a "See all … on the page ↑" button in the chat.
 4. **Ask about price and stock**, for example "How much is the Yale Mom
    Crewneck, and is it in stock in a medium?" Dan reads both from the database
    and says plainly when a size is sold out.
@@ -248,6 +250,12 @@ origin and the login cookie rides along. Keep the back end running on port
 - **The chat says "The shopping assistant isn't available right now."** The
   chat route answered 503 because `PORTKEY_API_KEY` is not set. Put the key in
   `hw4/.env` and restart uvicorn. The rest of the site works without it.
+- **The chat says "Sorry, I couldn't answer just now."** The key is set but the
+  gateway rejected it or couldn't reach the models (this includes leaving the
+  placeholder from `.env.example` in place). The uvicorn log shows the error.
+  Check the key in `hw4/.env`, or point `CAMPUS_CUSTOMS_MODEL` and
+  `CAMPUS_CUSTOMS_TEAM_MODEL` at models your key can use. With no key at all,
+  delete the `PORTKEY_API_KEY` line so the chat answers 503 instead.
 - **uvicorn stops at startup with "No shop database at …/data/campus_customs.db.
   Place the data pack in hw4/data/".** The database isn't where the back end
   looks for it. Do step 1, then start uvicorn again. (The back end never creates
@@ -280,8 +288,9 @@ uvicorn main:app --reload --reload-include '*.md' --port 8000
 python3 --version
 ```
 
-- **`npm run dev` fails on an older Node.** Vite 8 needs Node `^20.19.0` or
-  `>=22.12.0`. Check the version:
+- **`npm install` or `npm run dev` complains about the Node version.** Use
+  Node 22.22 or later (React Router 8 declares `>=22.22.0`; Vite 8 needs
+  `^20.19.0` or `>=22.12.0`). Check the version:
 
 ```bash
 node --version

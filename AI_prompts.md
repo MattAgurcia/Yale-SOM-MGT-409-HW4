@@ -281,8 +281,14 @@ My prompt left out the output/design.md write-up this problem asks for (what cha
 
 7. fix 1, 2, and 4
 
+8. Keep as is. Don't do it just yet, but could we push this to the website through Cloud Run?
+
+   /Users/matthewagurcia/Documents/agurcia.org
+
+9. is the assignment good to submit?
+
 **Notes:**
 
-After the first push, design.md was still a guess because my Problem 10 prompt never asked for it, so I asked about it and then had the whole project graded against the assignment pages to close any remaining gaps.
+After the first push, design.md was still a guess because my Problem 10 prompt never asked for it, so I asked about it and then had the whole project graded against the assignment pages to close any remaining gaps. That pass found a chat shelf that could mix results, a stale harness diagram, a long design.md and outdated screenshots, so I asked for those fixes and then a final check before submitting.
 
 ---
