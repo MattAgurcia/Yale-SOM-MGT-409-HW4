@@ -2128,7 +2128,7 @@ This section lists every tool on the team, who holds it, what it reads and how m
 
 - **Only Dan talks to the shopper.** The Scout and the Stylist run only when Dan calls `ask_scout` or `ask_stylist`. The memory clerk runs in the background (`main.remember_later`) after a logged-in customer's on-topic exchange is saved. It reads the current notes and the messages they don't cover yet (at most the newest 30), each cut to 600 characters.
 - **Retries.** Dan, the Scout and the Stylist each get 2 tries to fix a rejected tool call or answer (`retries=2`). The memory clerk gets 1.
-- **Limits.** Per shopper message, Dan gets 8 model calls, 12 tool calls and 60,000 tokens (`CONCIERGE_LIMITS`), and each response is capped at 1,000 tokens (`MAX_REPLY_TOKENS`). Each Scout or Stylist run gets 4 model calls, 4 tool calls and 15,000 tokens (`TEAMMATE_LIMITS`), with 800 tokens per response (`MAX_TEAMMATE_REPLY_TOKENS`). The memory clerk gets 2 model calls and 8,000 tokens (`MEMORY_LIMITS`), and the same 800 tokens per response. Each Scout or Stylist run gets 4 model calls, 4 tool calls, 15,000 tokens and 800 tokens per response (`TEAMMATE_LIMITS`). The memory clerk gets 2 model calls, 8,000 tokens and 800 tokens per response (`MEMORY_LIMITS`).
+- **Limits.** Per shopper message, Dan gets 8 model calls, 12 tool calls and 60,000 tokens (`CONCIERGE_LIMITS`), and each response is capped at 1,000 tokens (`MAX_REPLY_TOKENS`). Each Scout or Stylist run gets 4 model calls, 4 tool calls and 15,000 tokens (`TEAMMATE_LIMITS`), with 800 tokens per response (`MAX_TEAMMATE_REPLY_TOKENS`). The memory clerk gets 2 model calls and 8,000 tokens (`MEMORY_LIMITS`), and the same 800 tokens per response.
 - **One ledger, one audit trail.** Every agent carries `agent.AuditTrail(<name>)`. The Scout and the Stylist run on a copy of Dan's `ShopDeps` with their own `agent_id`. The copy shares Dan's ledger (§7.1).
 
 ### 11.2 Every tool
@@ -2694,9 +2694,11 @@ password, the session token and the full prompt.
 are sorted by a nanosecond start time and written to the millisecond. A
 hand-off therefore always comes before the teammate's own steps.
 
-The first 122 entries were written before this fix. In a few of them a
-In three of them a teammate's up-front lookup (two Scout searches and one Stylist `outfit_candidates`) appears one line before the `ask_scout` or `ask_stylist` call that started it.
-They're left as written, because the trail is append-only.
+The first 122 entries were written before this fix. In three of them a
+teammate's up-front lookup (two Scout searches and one Stylist
+`outfit_candidates`) appears one line before the `ask_scout` or `ask_stylist`
+call that started it. They're left as written, because the trail is
+append-only.
 
 ### 13.5 Reading one turn
 

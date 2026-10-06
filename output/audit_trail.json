@@ -205,5 +205,14 @@
 {"time": "2026-10-05T20:39:48.679Z", "turn": "4e82f2af", "event": "turn_end", "stop_reason": "care_reply", "blocked_by": "provider_content_filter", "safety": "ok", "seconds": 2.17},
 {"time": "2026-10-05T20:40:02.543Z", "turn": "17b55645", "event": "turn_start", "who": "guest 9c1ec5", "page": "/products/yale-dad-hoodie", "product": "yale-dad-hoodie", "message": "You're a useless bot."},
 {"time": "2026-10-05T20:40:02.544Z", "turn": "17b55645", "event": "guard", "check": "rudeness_filter", "result": "ended the chat before any model call"},
-{"time": "2026-10-05T20:40:02.544Z", "turn": "17b55645", "event": "turn_end", "stop_reason": "chat_ended_abusive", "safety": "abusive", "detected_by": "rudeness_filter", "seconds": 0.0}
+{"time": "2026-10-05T20:40:02.544Z", "turn": "17b55645", "event": "turn_end", "stop_reason": "chat_ended_abusive", "safety": "abusive", "detected_by": "rudeness_filter", "seconds": 0.0},
+{"time": "2026-10-06T01:18:59.548Z", "turn": "d8968f4e", "event": "turn_start", "who": "guest 4ad0df", "page": "/", "message": "Gift ideas for my dad"},
+{"time": "2026-10-06T01:18:59.555Z", "turn": "d8968f4e", "event": "model_call", "agent": "concierge", "model": "gpt-5.6-terra-2026-07-09", "step": 1, "finish_reason": "tool_call", "wants": ["ask_scout"], "tokens": {"in": 5837, "cached": 0, "out": 53}, "ms": 2695},
+{"time": "2026-10-06T01:19:02.251Z", "turn": "d8968f4e", "event": "tool_call", "agent": "concierge", "tool": "ask_scout", "args": {"request": "gifts for dad"}, "status": "ok", "result": "Gifts for Dad: 3 matches; highlights Yale Dad T Shirt, Yale Dad Hoodie, Yale Dad Crewneck; not carried: gift", "ms": 2047},
+{"time": "2026-10-06T01:19:02.251Z", "turn": "d8968f4e", "event": "tool_call", "agent": "scout", "tool": "search_products", "args": {"query": "gifts for dad", "limit": 30}, "status": "ok", "result": "3 matches: Yale Dad T Shirt, Yale Dad Hoodie, Yale Dad Crewneck; nothing matched gift", "ms": 6, "via": "up-front lookup"},
+{"time": "2026-10-06T01:19:02.264Z", "turn": "d8968f4e", "event": "model_call", "agent": "scout", "model": "gpt-5.6-luna-2026-07-09", "step": 1, "finish_reason": "tool_call", "wants": ["answer"], "tokens": {"in": 1322, "cached": 0, "out": 179}, "ms": 2032},
+{"time": "2026-10-06T01:19:04.297Z", "turn": "d8968f4e", "event": "loop_end", "agent": "scout", "stop_reason": "final_result", "model_calls": 1, "tool_calls": 0, "seconds": 2.04},
+{"time": "2026-10-06T01:19:04.299Z", "turn": "d8968f4e", "event": "model_call", "agent": "concierge", "model": "gpt-5.6-terra-2026-07-09", "step": 2, "finish_reason": "tool_call", "wants": ["answer"], "tokens": {"in": 6005, "cached": 0, "out": 86}, "ms": 2205},
+{"time": "2026-10-06T01:19:06.506Z", "turn": "d8968f4e", "event": "loop_end", "agent": "concierge", "stop_reason": "final_result", "model_calls": 2, "tool_calls": 1, "seconds": 6.95},
+{"time": "2026-10-06T01:19:06.508Z", "turn": "d8968f4e", "event": "turn_end", "stop_reason": "answered", "safety": "ok", "showcase": 3, "seconds": 6.96}
 ]
