@@ -429,7 +429,7 @@ class ShopDeps:
     quantities_seen: set[int] = field(default_factory=set)
     sold_out_checks: list[str] = field(default_factory=list)  # e.g. "Baseball Left Chest Crewneck in XS"
     searched_ids: set[str] = field(default_factory=set)  # every product search_products returned this turn
-    search_order: list[str] = field(default_factory=list)  # the same, in the order searches ranked them
+    search_order: list[str] = field(default_factory=list)  # search hits in ranked order; each Scout trip keeps its own
     scout_ids: list[str] = field(default_factory=list)  # the Scout's final matches, ready for a showcase
     scout_trips: int = 0  # times the concierge sent the Scout out this turn (agent.MAX_SCOUT_TRIPS)
     recommended: dict[str, Recommendation] = field(default_factory=dict)  # alternatives / outfit picks offered

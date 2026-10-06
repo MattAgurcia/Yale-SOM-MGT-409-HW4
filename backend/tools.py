@@ -960,7 +960,7 @@ def search_products(
     for match in matches:
         ctx.deps.prices_seen.add(match.price)
         ctx.deps.quantities_seen.add(match.total_stock)
-        if match.product_id not in ctx.deps.searched_ids:
+        if match.product_id not in ctx.deps.search_order:  # each run's own list (a Scout trip gets a fresh one)
             ctx.deps.search_order.append(match.product_id)
         ctx.deps.searched_ids.add(match.product_id)
     if not getattr(ctx, "quiet", False):

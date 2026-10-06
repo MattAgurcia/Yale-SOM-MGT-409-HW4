@@ -1063,8 +1063,12 @@ async def _run_teammate(
     member_id: str,
     label: str,
     prepare: Any,
+    **own: Any,
 ) -> Any:
     """Run one teammate on a task, sharing the ledger; stream the hand-off both ways.
+
+    `own` gives the teammate its own value for a ShopDeps field instead of sharing Dan's (the
+    Scout gets a fresh `search_order`, so its shelf holds only what this trip found).
 
     `prepare(teammate_ctx)` does the teammate's database lookup up front (instant, no model call)
     and returns either the finished report, when the lookup alone settles it, or the prompt with
@@ -1074,7 +1078,7 @@ async def _run_teammate(
     boss = ctx.deps.agent_id
     _emit(ctx.deps, "delegate", **{"from": boss, "to": member_id, "task": label})
     _emit(ctx.deps, "status", agent=member_id, state="working")
-    member_deps = dataclasses.replace(ctx.deps, agent_id=member_id)
+    member_deps = dataclasses.replace(ctx.deps, agent_id=member_id, **own)
     model = TEAM_MODEL
     started = time.perf_counter()
     looked_up = False
@@ -1146,6 +1150,17 @@ def _quick_scout_report(request: str, max_price: float | None, size: str | None,
     )
 
 
+# Words for something the shop could stock but doesn't: a colour or a kind of garment (in the
+# singular the search uses). An unmatched word like "gift" or "comfy" doesn't count: it just
+# found no exact match.
+NOT_CARRIED_HINTS = {
+    "pink", "red", "green", "purple", "orange", "yellow", "brown", "maroon", "teal", "gold", "beige", "tan",
+    "black", "white", "blue", "navy", "gray", "cream", "silver", "lavender", "violet", "olive", "khaki", "burgundy",
+    "pant", "sweatpant", "jogger", "short", "jean", "legging", "hat", "cap", "beanie", "sock", "scarf",
+    "glove", "mug", "bag", "backpack", "dress", "skirt", "polo", "vest", "jersey", "blanket",
+}
+
+
 @concierge.tool
 async def ask_scout(
     ctx: RunContext[ShopDeps], request: str, max_price: float | None = None, size: Size | None = None
@@ -1195,14 +1210,22 @@ async def ask_scout(
             "Report on these. Search again only if they clearly miss the request."
         )
 
-    report = await _run_teammate(ctx, scout, "scout", f"Find {request}", prepare)
+    # This trip's own search hits, in ranked order. Earlier lookups in the same message (find_product,
+    # a first Scout trip) stay out of this shelf.
+    trip_order: list[str] = []
+    report = await _run_teammate(ctx, scout, "scout", f"Find {request}", prepare, search_order=trip_order)
     if report is None:
         return ScoutFindings(
             title="", match_count=0, highlights=[], unmatched=[], summary="The Scout couldn't finish; use find_product."
         )
     # The Scout only says what to drop; the search's own ranking orders the rest.
     dropped = set(report.drop_ids)
-    ctx.deps.scout_ids = [pid for pid in ctx.deps.search_order if pid not in dropped][:MAX_SHOWCASE]
+    ctx.deps.scout_ids = [pid for pid in trip_order if pid not in dropped][:MAX_SHOWCASE]
+    # If the shop doesn't carry something asked for ("pink"), the shelf holds the closest options
+    # and says so, rather than "Pink Hoodies" over 27 gray and navy ones.
+    title = report.title
+    if ctx.deps.scout_ids and any(word in NOT_CARRIED_HINTS for word in report.unmatched):
+        title = f"Closest to {request.strip().rstrip('.?!')}"[:60]
     # Highlights are the closest real options; they may be shown as "Closest we have" cards.
     for highlight in report.highlights:
         ctx.deps.recommended.setdefault(
@@ -1210,7 +1233,7 @@ async def ask_scout(
             Recommendation(product_id=highlight.product_id, name=highlight.name, role="Closest match", reason=highlight.note),
         )
     return ScoutFindings(
-        title=report.title,
+        title=title,
         match_count=len(ctx.deps.scout_ids),
         highlights=report.highlights,
         unmatched=report.unmatched,

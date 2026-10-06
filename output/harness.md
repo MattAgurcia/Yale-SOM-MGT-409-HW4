@@ -888,21 +888,32 @@ page uses, so clicking it opens the product's own page from Problem 3.
 
 ### 5.1 How search results reach the page
 
+This is the flow as it runs today. Problem 7 built the first version, with Dan
+calling `search_products` himself. Since Problem 9 the search is the Scout's
+job, and the shelf is filled on the server from the Scout's own results
+(§7.1).
+
 ```
 Shopper: "What hoodies do you have?"
   │
   ▼
-ChatWidget ──POST /api/chat {message, history}──▶ main.py ──▶ agent.ask()
-                                                                │
-                      search_products("hoodie", limit=30) ◀─────┤  reads campus_customs.db;
-                      → 27 ProductMatch                         │  ids go into deps.searched_ids
-                                                                │
-                      ShopReply {message, showcase{title,       │  output validator: every showcase
-                                 product_ids}} ─────────────────┘  id must be in searched_ids
-  main.py: load_products(showcase ids) ──▶ campus_customs.db   (fresh cards, unknown ids dropped)
+ChatWidget ──POST /api/chat/stream {message, page}──▶ main.py ──▶ agent.ask()
+                                                                    │
+  Dan (concierge) ── ask_scout("hoodies") ──▶ Scout                 │
+       search_products("hoodies", limit=30)  ◀── run up front, in code: no model call
+       → 27 matches, in ranked order, recorded for THIS trip only (deps.scout_ids);
+         every id also goes into deps.searched_ids for the checks
+       (a clean search needs no Scout model at all; a partial one, like "pink hoodies",
+        gets one cheap call to judge the matches and pick three highlights)
+  ◀── ScoutFindings {title "Hoodies", match_count 27, highlights[3], unmatched[]}
+                                                                    │
+  ShopReply {message, showcase {title "Hoodies", product_ids: []}}  │  output validators: an empty list is
+                                                                    │  only allowed if the Scout found
+  main.py: load_products(deps.scout_ids) ──▶ campus_customs.db       │  something; listed ids must come
+           (fresh cards: price and stock re-read, unknown ids dropped)  from this turn's searches
   │
   ▼
-ChatResponse {reply, products, showcase{title, products[27]}}
+SSE "final": ChatResponse {reply, products, showcase {title, products[27]}}
   │
   ▼
 ChatWidget ── showOnPage(showcase) ──▶ ChatContext ──▶ <ChatShowcase> at the top of <main>
@@ -913,52 +924,61 @@ ChatWidget ── showOnPage(showcase) ──▶ ChatContext ──▶ <ChatShow
 
 Step by step:
 
-1. **The agent searches.** (Since Problem 9 the concierge sends the Scout with `ask_scout`, which runs this search up front with `limit=30`. The concierge then leaves `showcase.product_ids` empty, and `main.py` fills the shelf from the Scout's matches (`ShopDeps.scout_ids`). The widget posts to `/api/chat/stream`. §7.1, §7.2.) For a browse question, the prompt tells it to call
-   `search_products` with short keywords and `limit=30`. The tool reads the
-   database and returns `ProductMatch` rows. It also records each returned
-   `product_id` in the run's ledger (`ShopDeps.searched_ids`).
-2. **The agent returns structured matches.** Its `ShopReply` carries a short
-   `message` and a `showcase`: a `title` in the shopper's words ("Hoodies") and
-   the `product_ids` of every real match, best first, after it has checked
-   each one's garment type. `product_ids` for the chat stays empty, because the
-   page will show the cards.
-3. **The backend checks them.** The output validator (`ungrounded_showcase`)
-   rejects a showcase holding any id that `search_products` didn't return in
-   this turn. The model has to search; it can't showcase from memory. The
-   price and stock checks from §4 run too.
-4. **The backend builds the cards.** `main.py` calls `load_products()` with the
-   showcase ids. That gives full `Product` cards in the agent's order, with
-   unknown ids dropped and price and stock re-read at that moment. It returns
-   them as `ChatResponse.showcase = {title, products}`.
-5. **The website puts them on the page.** The chat widget hands the showcase to
+1. **Dan sends the Scout.** For a browse question, the prompt tells Dan to call
+   `ask_scout` with a few words ("hoodies", "pink hoodies", "gifts for dad").
+2. **The Scout searches, in code first.** `ask_scout` runs
+   `search_products(request, limit=30)` before any model call. The hits, in
+   ranked order, are recorded for this trip only, so an earlier lookup in the
+   same message (a `find_product`, an earlier trip) can't leak onto this
+   shelf. Every hit also goes into `ShopDeps.searched_ids` for the checks.
+   - When every search word matched, or nothing did, the search's own ranking
+     is the report, with no Scout model call (`settled_by_lookup`).
+   - Otherwise the cheaper Scout model reads the list once. It drops any wrong
+     matches (`drop_ids`) and picks up to three highlights.
+3. **Dan gets a compact report.** `ScoutFindings` holds a `title`, a
+   `match_count`, the highlights and any `unmatched` words. If an unmatched
+   word is a colour or a kind of garment the shop doesn't stock ("pink",
+   "sweatpants"), the title becomes "Closest to pink hoodies", not "Pink
+   Hoodies". The shelf is then honest about holding the nearest options.
+4. **Dan answers with a showcase.** His `ShopReply` carries a short `message`
+   and `showcase = {title, product_ids: []}`. The empty list means "everything
+   the Scout found", so Dan never has to read or write 27 ids.
+5. **The checks run.** `ungrounded_showcase` rejects an empty showcase when the
+   Scout found nothing. It also rejects listed ids that no search returned
+   this turn, so Dan can't showcase from memory. The price and stock checks
+   from §4 run too.
+6. **The server builds the cards.** `main.py` calls `load_products()` with the
+   Scout's ids, in the Scout's order. That gives full `Product` cards with
+   price and stock re-read at that moment. It returns them as
+   `ChatResponse.showcase = {title, products}` in the stream's `final` event.
+7. **The website puts them on the page.** The widget hands the showcase to
    `ChatContext` (`showOnPage`) and adds a "See all 27 hoodies on the page ↑"
-   button under the reply. `<ChatShowcase>`, which `App.tsx` renders at the top
-   of `<main>` above every route, reads the context and draws the shelf.
-6. **Each card opens the product.** Every card in the shelf is
-   `<ProductCard showInfo>`, a link to `/products/:product_id`, the same
-   detail page and route as Problem 3.
+   button under the reply. `<ChatShowcase>`, rendered by `App.tsx` at the top of
+   `<main>` above every route, draws the shelf.
+8. **Each card opens the product.** Every card in the shelf is
+   `<ProductCard showInfo>`, a link to `/products/:product_id`: the same detail
+   page and route as Problem 3.
 
 ### 5.2 The API contract
 
-**Agent → backend** (`models.ShopReply`, the agent's PydanticAI output type):
+**Dan → backend** (`models.ShopReply`, the agent's PydanticAI output type):
 
 ```json
 {
-  "message": "We've got 27 hoodies… I've put all 27 on the page for you.",
+  "safety": "ok",
+  "message": "Woof! I found 27 hoodies, including the **Champion Reverse Weave Hoodie 1**… I've put them all on the page.",
   "product_ids": [],
-  "showcase": {
-    "title": "Hoodies",
-    "product_ids": ["champion-reverse-weave-hoodie-1", "yale-sports-hoodie-hockey", "…"]
-  }
+  "showcase": {"title": "Hoodies", "product_ids": []},
+  "suggestions": []
 }
 ```
 
 **Backend → website** (`models.ChatResponse` in Python, `ChatReply` in
-`frontend/src/api.ts`):
+`frontend/src/api.ts`; the stream sends it as the `final` event):
 
 ```json
 {
-  "reply": "We've got 27 hoodies… I've put all 27 on the page for you.",
+  "reply": "Woof! I found 27 hoodies, including the **Champion Reverse Weave Hoodie 1**… I've put them all on the page.",
   "products": [],
   "showcase": {
     "title": "Hoodies",
@@ -973,40 +993,49 @@ Step by step:
         "inventory": [{"size": "XS", "quantity": 0}, {"size": "S", "quantity": 25}, "…"],
         "total_stock": 80,
         "colors": ["navy", "white"],
-        "search_tags": ["…"],
-        "image_file_path": "products/champion-reverse-weave-hoodie-1.jpg"
+        "category": "hoodies",
+        "…": "…"
       }
     ]
-  }
+  },
+  "suggestions": [],
+  "activity": {"seconds": 4.7, "agents": ["concierge"], "usage": ["…"]},
+  "session": {"ended": false, "reason": null, "until": null, "strikes": 0},
+  "keep_in_history": true
 }
 ```
 
 | Rule | Enforced by |
 |---|---|
-| Showcase ids must come from a `search_products` call in the same turn. | `agent.ungrounded_showcase`, an output validator. A failing reply goes back to the model; if it never passes, the shopper gets a 502 and nothing reaches the page. |
-| 0–30 product ids and a 1–60 character title. Since Problem 9 an empty list, the usual case, means every match the Scout found (`ShopDeps.scout_ids`) | The `models.Showcase` Pydantic type; `agent.ungrounded_showcase` rejects an empty showcase when the Scout found nothing |
+| A showcase may list 0–30 ids with a 1–60 character title. An empty list (the usual case) means "everything the Scout found on this trip". | The `models.Showcase` type; `main.py` fills an empty list from `ShopDeps.scout_ids` |
+| An empty showcase needs a Scout trip that found something; listed ids must come from a search in the same turn | `agent.ungrounded_showcase`, an output validator. A failing reply goes back to Dan; if it never passes, the shopper gets a 502 and nothing reaches the page. |
+| The shelf holds only the latest Scout trip's hits, in the search's order, minus the Scout's `drop_ids` | `ask_scout` (a fresh `search_order` per trip) |
+| A shelf for something the shop doesn't stock says so in its title ("Closest to …") | `ask_scout` (`NOT_CARRIED_HINTS`) |
 | Cards are built from the database, not from the model: unknown ids dropped, price and stock current, order kept | `main.py` (`load_products`) |
-| No showcase for a question about one specific product, a follow-up, or no matches | The prompt. With `showcase: null` the page is left as it is. |
+| No showcase for a question about one product, a follow-up, or no matches | The prompt. With `showcase: null` the page is left as it is. |
 | A new showcase replaces the old one; Clear removes it | `ChatContext` |
 
-Why the model sends **ids** and the server sends **cards**:
+Why the model sends at most **ids**, and usually none, while the server sends
+**cards**:
 
 - **The model never writes a price, image path or stock number**, so none of
   those can be invented.
-- **The model's output stays small:** 27 ids rather than 27 full cards.
+- **The model's output stays small:** an empty list rather than 27 ids, and
+  27 ids rather than 27 cards.
 - **Every card is checked against the database before it's drawn.**
 
-Why **30**: the largest categories are hoodies (27) and crewnecks, so one search
-can fill the page. `search_products` and `Showcase` both cap at 30
-(`MAX_RESULTS` / `MAX_SHOWCASE`).
+Why **30**: the largest browse searches are "crewnecks" (29) and "hoodies" (27,
+including two full-zip hooded jackets), so one search can fill the shelf.
+`search_products` and `Showcase` both cap at 30 (`MAX_RESULTS` /
+`MAX_SHOWCASE`).
 
 ### 5.3 The front end
 
 | Piece | File | Job |
 |---|---|---|
 | Chat state | `src/chat/chatContext.ts`, `src/chat/ChatProvider.tsx` | Holds whether the chat panel is open, the current showcase, and a "reveal" counter. Shared because the widget receives the results but the shelf shows them, and the shelf moves out of the panel's way when it's open. |
-| The shelf | `src/components/ChatShowcase.tsx` | Renders "From your chat · Hoodies · 27 matches" (details below). |
-| The card | `src/components/ProductCard.tsx` | The Products-page card. With `showInfo` it adds the "short info" (below). |
+| The shelf | `src/components/ChatShowcase.tsx` | Renders "Dan fetched these · Hoodies · 27 matches" (details below). |
+| The card | `src/components/ProductCard.tsx` | The Products-page card, with the short description and a stock line (`showInfo`). |
 | The chat | `src/components/ChatWidget.tsx` | Sends the showcase to the page and shows "See all N … on the page ↑" under the reply. On a phone, where the chat covers the screen, that button closes the chat and scrolls to the shelf. Small chat cards still appear for answers about specific products. |
 | Types | `src/api.ts` | `ProductShowcase` and `ChatReply.showcase`, mirroring `models.ProductShowcase` / `models.ChatResponse`. |
 
@@ -1015,18 +1044,20 @@ The shelf in detail:
 - **Layout.** A horizontal row of cards that snap into place: four across on
   desktop, about one and a half on a phone. It has ← / → buttons, Hide / Show,
   and Clear.
-- **On arrival.** New results open the shelf and scroll it into view.
+- **On arrival.** New results open the shelf and scroll it into view (without
+  the glide for shoppers who turn on "reduce motion").
 - **On a product's page.** The shelf folds to one line so the item comes
   first; Show opens it again.
-- **Next to the chat.** On screens 1024px and wider, with the chat panel open,
-  the shelf's content is padded to stop short of the panel.
-- **Short info on each card.** Two lines of the product's description, plus a
-  stock line computed from the live inventory in the response: "In stock in
-  every size", "In stock: S, M, L, XXL" or "Sold out".
+- **Next to the chat.** On screens 1100px and wider, with the chat panel open,
+  the shelf stops short of the panel.
+- **Short info on each card.** Three lines of the product's description, plus a
+  stock line from the live inventory in the response: "In stock in every
+  size", "In stock: S, M, L, XXL" or "Sold out".
 
 The showcase lives in memory for the visit. It survives moving between pages,
-which are in-app navigations, and is cleared by Clear, replaced by the next
-browse question, and gone after a full reload, just like the chat.
+which are in-app navigations. It's cleared by Clear, replaced by the next
+browse question, and gone after a full reload. Saved chats keep the reply's
+text, but not the shelf (§6.7).
 
 ### 5.4 The Problem 3 detail page still works
 
@@ -1041,18 +1072,25 @@ The chat's cards are not a second kind of card. They are the same
 - **Normal navigation.** The browser's Back button returns to the previous
   page, with the shelf open again.
 
-### 5.5 Prompt changes (`backend/prompts/prompt.md`)
+### 5.5 What the prompt says about it (`backend/prompts/prompt.md`)
 
-- **Tool table.** (Superseded in Problem 9: browse questions now go to the Scout through `ask_scout`, the tool table has no `search_products` row, and "Showing products on the page" was folded into the `showcase` bullet of "Your answer: safety, message, chat cards, page showcase and suggestions".) A new first row: browse questions ("What hoodies do you
-  have?", "show me Morse stuff", "tees under $40") → `search_products` with
-  `limit=30`, with every relevant match put into `showcase`.
-- **Renamed section.** "Product cards" became "Your answer: message, chat cards
-  and the page showcase", explaining all three parts of the answer.
-- **New section, "Showing products on the page".** Four steps: search with
-  `limit=30` → keep only real matches → set `showcase` (title plus every kept
-  id, only from this turn's search) → keep the message short, name two or
-  three highlights, point to the page, and leave chat `product_ids` empty.
-  It also says when to leave `showcase` null.
+As it reads today (Problem 7 wrote the first version, which had Dan search
+himself):
+
+- **"Your team" → Scout.** Use `ask_scout` for browsing ("what hoodies do you
+  have?", "show me Morse stuff", "gifts for my dad", "tees under $40", "do you
+  have pink hoodies?"). Its findings give a `title`, a `match_count`, up to
+  three `highlights` and `unmatched` words. Ask it once per message (twice only
+  for two different things), then answer.
+- **"Your answer" → `showcase`.** After the Scout finds a kind of item, set
+  `showcase` with its `title` and leave `showcase.product_ids` empty. Say how
+  many were found, name two or three highlights, point to the page ("I've put
+  all 27 on the page"), and leave the chat's `product_ids` empty. Leave
+  `showcase` null for a question about one product.
+- **"When the shop doesn't have it".** If the Scout reports `unmatched` words
+  ("pink"), say plainly that the shop doesn't carry that, then show the closest
+  real options: as suggestions ("Closest we have") or on the shelf, whose title
+  then starts "Closest to".
 
 ### 5.6 How it was verified (2026-10-05)
 
@@ -1942,8 +1980,8 @@ Why four values rather than a yes/no flag:
 | `quantities_seen` | `set[int]` | `search_products` (totals), `check_stock` (every size and the total), `size_advice` (the product's sizes) | Every "N left" or "N in stock" in the reply must be here. |
 | `sold_out_checks` | `list[str]` | `check_stock` and `size_advice`, when the size asked about or recommended is sold out | The reply must say "sold out" or "out of stock". |
 | `searched_ids` | `set[str]` | `search_products` | `ungrounded_showcase` (showcase ids) and the Scout's validator (highlights). |
-| `search_order` | `list[str]` | `search_products`, in ranked order | `ask_scout` builds `scout_ids` from it. The Scout's validator requires a search first. |
-| `scout_ids` | `list[str]` | `ask_scout`: the search order minus the Scout's `drop_ids`, at most 30 | `backend/main.py` shows these when `showcase.product_ids` is empty. Also gives `ScoutFindings.match_count`. |
+| `search_order` | `list[str]` | `search_products`, in ranked order. Each Scout trip gets a fresh list of its own; Dan's own lookups (`find_product`) stay in his. | `ask_scout` builds `scout_ids` from its trip's list, so an earlier lookup can't leak onto the shelf. The Scout's validator requires a search on this trip first. |
+| `scout_ids` | `list[str]` | `ask_scout`: the latest trip's search order minus the Scout's `drop_ids`, at most 30 | `backend/main.py` shows these when `showcase.product_ids` is empty. Also gives `ScoutFindings.match_count`. |
 | `scout_trips` | `int` | `ask_scout` | A third trip in one message is refused (`agent.MAX_SCOUT_TRIPS = 2`, §9). |
 | `recommended` | `dict[str, Recommendation]` | `check_stock` and `size_advice` alternatives, `find_similar`, `outfit_candidates`, Scout highlights. The Stylist rewrites role and reason. | `ungrounded_suggestions` and the Stylist's validator. `backend/main.py` takes each suggestion card's role and reason from it. |
 | `usage_log` | `list[ModelUsage]` | `agent._log_usage`, after each agent run | `ChatActivity`. |
@@ -2037,7 +2075,7 @@ These are what each teammate hands back to Dan. The teammates' output tokens are
 
 | Field | Type / limits | Why |
 |---|---|---|
-| `title` | `str` | For the showcase title. |
+| `title` | `str` | For the showcase title. When an unmatched word is a colour or garment the shop doesn't stock, `ask_scout` rewrites it as "Closest to …" (§5.1). |
 | `match_count` | `int` | Real matches ready for the showcase (`len(scout_ids)`). Dan can say "I've put all 27 on the page" without seeing 27 ids. |
 | `highlights` | `list[Highlight]` | The standouts to name. |
 | `unmatched` | `list[str]` | What the shop doesn't carry. |
@@ -2143,7 +2181,7 @@ This section lists every tool on the team, who holds it, what it reads and how m
 | `find_similar(product_id, size?)` | Dan, Stylist. `ask_stylist` also runs it up front. | "Anything like this but in my size?" | `catalogue` + `inventory` | A list of `Recommendation` (id, name, role "Similar style", reason) | 4 |
 | `outfit_candidates(product_id, size?)` | Stylist. `ask_stylist` also runs it up front. | "What goes with this hoodie?" | `catalogue` + `inventory` | A list of `Recommendation` with a role ("Wear under", "Layer over", "Top it with", "Layer under") and reasons | Asks for 5. It takes at most 2 per layer from 2 layers, so it returns at most 4. |
 | `size_advice(height_in, weight_lb, chest_in?, fit="regular", product_id?)` | Dan | "I'm 5'10" and 170, which size?" | `size_guide`, `fit_notes`, and the product's `inventory` when one is given | `SizeFitCheck`: `size`, `alternative` when between sizes, explanation, `fit_note`, the 6-row chart, stock in the size, `similar_in_size` | Height 48–90 in, weight 70–400 lb, chest 24–70 in. `similar_in_size` ≤3, filled only when the size is sold out in that product. |
-| `ask_scout(request, max_price?, size?)` | Dan | "Gifts for my dad?", "Do you have pink hoodies?" | `search_products`, then the Scout model only for a partial match | `ScoutFindings`: `title`, `match_count`, `highlights`, `unmatched`, `summary` | 2 trips per message (`MAX_SCOUT_TRIPS`). A third trip gets "answer now" instead. ≤30 matches for the showcase, ≤3 highlights. |
+| `ask_scout(request, max_price?, size?)` | Dan | "Gifts for my dad?", "Do you have pink hoodies?" | `search_products`, then the Scout model only for a partial match | `ScoutFindings`: `title`, `match_count`, `highlights`, `unmatched`, `summary` | 2 trips per message (`MAX_SCOUT_TRIPS`). A third trip gets "answer now" instead. ≤30 matches for the showcase, from this trip's search only; ≤3 highlights. |
 | `ask_stylist(product_id, goal, size?)` | Dan | "Complete the look" (`goal="complete_the_look"`), "something like this" (`goal="similar"`) | `outfit_candidates` or `find_similar`, then the Stylist model. The shopper's memory notes go in the task. | `StylistReport`: `kind`, `picks`, `summary` | ≤3 picks. No trip cap of its own; Dan's 12 tool calls bound it. |
 
 How the helpers decide (the first three make no model calls):
@@ -2166,7 +2204,7 @@ How the helpers decide (the first three make no model calls):
 | `prices_seen` | `search_products` (so also `find_product` and the Scout), `get_price` | Dollar amounts in Dan's reply |
 | `quantities_seen` | `search_products` (totals), `check_stock` (every size plus the total), `size_advice` (the product's sizes) | "N left / N in stock" in Dan's reply |
 | `sold_out_checks` | `check_stock` (asked size at 0), `size_advice` (recommended size at 0) | The reply must say "sold out" or "out of stock" |
-| `searched_ids`, `search_order` | `search_products` | Showcase ids and Scout highlights. `search_order` also sets the showcase order. |
+| `searched_ids`, `search_order` | `search_products` | Showcase ids and Scout highlights. `search_order` (a fresh one for each Scout trip) sets the shelf and its order. |
 | `recommended` | `similar_in_size` from `check_stock` and `size_advice`, `find_similar`, `outfit_candidates`, and the Scout's highlights ("Closest match"). The Stylist's wording replaces the role and the reason. | Suggestion cards |
 | `scout_ids`, `scout_trips` | `ask_scout` | The showcase when its id list is empty, and the 2-trip cap |
 
@@ -3155,6 +3193,26 @@ problem by problem against the HW4 instructions. That found:
   - opening a card from the full-screen phone chat now closes it at the same
     600px width where the chat fills the screen
   - the interface now says "Color" throughout (it mixed "Colour" and "Colors")
+
+**A strict grading pass.** Four grader agents scored each problem against its
+instructions and grading note, and a fifth checked every deduction against the
+evidence (97 of 100 after calibration). The fixes that came out of it:
+
+- **The chat shelf could mislabel or mix results.** It was built from every
+  search in the message, so a `find_product` lookup could join a browse shelf,
+  and the Scout's title could read "Pink Hoodies" over 27 gray and navy ones.
+  Each Scout trip now keeps its own ranked list, and a shelf for something the
+  shop doesn't stock is titled "Closest to …" (§5.1). Three tests cover it,
+  and a live check of "Do you have pink hoodies?" gave "Closest to pink
+  hoodies".
+- **§5 still diagrammed the Problem 7 flow** (Dan searching himself); it now
+  shows the Scout flow as it runs.
+- **`design.md` was concrete but long**; it was cut to the look and feel, with
+  the features left to `usability.md`.
+- **The storefront screenshots showed the old "Shop all" label**; 24 were
+  retaken with "Products". `memory_used.png` is kept from the first run so it
+  stays paired with its token panel (`memory_used_cache.png`).
+- **Two editing errors in §11 and §13 were fixed.**
 
 ### 15.4 The repository
 

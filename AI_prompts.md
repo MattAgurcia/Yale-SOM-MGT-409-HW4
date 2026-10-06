@@ -279,6 +279,8 @@ My prompt left out the output/design.md write-up this problem asks for (what cha
 
 6. how would you grade this? run the site so I can check it before submitting.
 
+7. fix 1, 2, and 4
+
 **Notes:**
 
 After the first push, design.md was still a guess because my Problem 10 prompt never asked for it, so I asked about it and then had the whole project graded against the assignment pages to close any remaining gaps.
