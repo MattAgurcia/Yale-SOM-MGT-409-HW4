@@ -105,7 +105,7 @@ export default function CategoriesPage() {
           <section className="cat-section" aria-labelledby="colours-title">
             <div className="section-head reveal">
               <div>
-                <p className="eyebrow">Shop by colour</p>
+                <p className="eyebrow">Shop by color</p>
                 <h2 id="colours-title">Blue, of course. And friends.</h2>
               </div>
             </div>

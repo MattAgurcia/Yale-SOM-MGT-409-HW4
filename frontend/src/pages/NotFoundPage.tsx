@@ -14,7 +14,7 @@ export default function NotFoundPage() {
           <Link to="/products" className="button">
             Shop the lineup
           </Link>
-          <Link to="/" className="button button--outline">
+          <Link to="/" className="button button--ghost">
             Back home
           </Link>
         </div>

@@ -3131,6 +3131,29 @@ files found:
   aren't in the repository. A renamed heading in `prompt.md` now gives a clear
   error.
 
+**Checked against the assignment pages.** The repository was then graded
+problem by problem against the HW4 instructions. That found:
+
+- **`output/design.md` is a Problem 10 deliverable**, not a typo: "what you
+  changed and why it should help customers stick around and buy. Keep it
+  concrete and short." The Problem 10 prompt had left it out. It was rewritten
+  to that brief: a short table of each design change and why it helps people
+  buy.
+- **Problem 3 named the nav link "Products".** The Problem 10 redesign had
+  relabelled it "Shop all"; it says "Products" again. Problem 3 also asks the
+  Products page for each item's "short description". Cards there now show it,
+  with the stock line, as the chat's shelf cards already did.
+- **Problem 1 asks for each problem's number and title** in `AI_prompts.md`,
+  and one sentence on what was lacking whenever there's a follow-up prompt. The
+  headings now carry the official titles, those notes were added, and "Can you
+  run the thing…" moved to Problem 9, where it was a follow-up.
+- **Small front-end fixes:**
+  - the 404 page's second button used an undefined style
+  - the chat shelf's scrolling now respects "reduce motion"
+  - opening a card from the full-screen phone chat now closes it at the same
+    600px width where the chat fills the screen
+  - the interface now says "Color" throughout (it mixed "Colour" and "Colors")
+
 ### 15.4 The repository
 
 - **Where:** https://github.com/MattAgurcia/Yale-SOM-MGT-409-HW4 (public).

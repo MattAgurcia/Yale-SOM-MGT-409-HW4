@@ -122,7 +122,7 @@ export default function NavBar() {
   }
 
   // A category view (the Categories page, or the shop filtered by type / collection / colour) lights
-  // up Categories in the menu instead of Shop all.
+  // up Categories in the menu instead of Products.
   const onCategories =
     location.pathname === '/categories' ||
     (location.pathname === '/products' && /[?&](type|collection|color)=/.test(location.search))
@@ -158,7 +158,7 @@ export default function NavBar() {
                   end
                   className={({ isActive }) => navClass({ isActive: isActive && !onCategories })}
                 >
-                  Shop all
+                  Products
                 </NavLink>
               </li>
               <li
@@ -252,7 +252,7 @@ export default function NavBar() {
               </li>
               <li>
                 <NavLink to="/products" end className={navClass}>
-                  Shop all
+                  Products
                 </NavLink>
               </li>
               <li>

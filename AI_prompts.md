@@ -2,7 +2,7 @@
 
 This file logs the prompts typed while completing this assignment, organized by problem.
 
-## Question 1
+## Problem 1: Vibe coder prompts
 
 **Prompts:**
 
@@ -14,7 +14,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 2
+## Problem 2: Analyze the database
 
 **Prompts:**
 
@@ -35,7 +35,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 3
+## Problem 3: Build the Campus Customs website
 
 **Prompts:**
 
@@ -55,7 +55,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 4
+## Problem 4: Create account and login
 
 **Prompts:**
 
@@ -77,7 +77,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 5
+## Problem 5: PydanticAI agent backend
 
 **Prompts:**
 
@@ -101,7 +101,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 6
+## Problem 6: Tools: product info and stock
 
 **Prompts:**
 
@@ -123,7 +123,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 7
+## Problem 7: Chat search that updates the page
 
 **Prompts:**
 
@@ -137,7 +137,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 8
+## Problem 8: Customer memory
 
 **Prompts:**
 
@@ -149,7 +149,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 9
+## Problem 9: Usability improvements
 
 **Prompts:**
 
@@ -177,17 +177,19 @@ This file logs the prompts typed while completing this assignment, organized by 
 
    If you have any other recommendation that you'd think would add better functionality to the website, I'd be happy to evaluate it before you implement it. Just let me know. These ideas are just me spitballin.
 
+2. Can you run the thing so I can see what we have?
+
 **Notes:**
+
+The improvements were built after the first prompt, but I hadn't seen them in the running app yet, so I asked for the site to be started before moving on.
 
 ---
 
-## Question 10
+## Problem 10: Style the website
 
 **Prompts:**
 
-1. Can you run the thing so I can see what we have?
-
-2. Thanks, moving onto question 10. Let's do a bit of an overhaul of the design. Yes to both of your suggestions; please build both of those out (filters/sorting & size and fit helper).
+1. Thanks, moving onto question 10. Let's do a bit of an overhaul of the design. Yes to both of your suggestions; please build both of those out (filters/sorting & size and fit helper).
 
    Now I want to add a more creative design so the site feels like a real campus customs storefront.
 
@@ -199,9 +201,11 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 **Notes:**
 
+My prompt left out the output/design.md write-up this problem asks for (what changed and why it should help customers stick around and buy); it was added in Problem 13 after I checked the project against the assignment pages.
+
 ---
 
-## Question 11
+## Problem 11: Site testing (app check)
 
 **Prompts:**
 
@@ -228,7 +232,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 12
+## Problem 12: Audit trail, safety, finish harness
 
 **Prompts:**
 
@@ -249,7 +253,7 @@ This file logs the prompts typed while completing this assignment, organized by 
 
 ---
 
-## Question 13
+## Problem 13: Push to GitHub and submit the URL
 
 **Prompts:**
 
@@ -265,6 +269,14 @@ This file logs the prompts typed while completing this assignment, organized by 
 
    *(Screenshot attached: the expected file layout — `hw4/` with `AI_prompts.md`, `requirements.txt`, `.env.example`, `.gitignore`, `README.md`, `frontend/` (Vite React TypeScript app), `backend/` (`main.py`, `agent.py`, `models.py`, `tools.py`, `prompts/prompt.md`) and `output/` (`harness.md`, `design.md`, `usability.md`, `app_check.html`, `app_check_images/`, `audit_trail.json`); plus a local-only data pack, not in git: `data/campus_customs.db` and `data/products/`.)*
 
+2. hi
+
+3. Did you ever find what that design.md thing was?
+
+4. Can you grade the project with what's on '/Users/matthewagurcia/Documents/MBA/Fa26/MGT-409_AI/hw 4/instructions'. Figure out if it's just a typo and make sure everything else is done to a T.
+
 **Notes:**
+
+After the first push, design.md was still a guess because my Problem 10 prompt never asked for it, so I asked about it and then had the whole project graded against the assignment pages to close any remaining gaps.
 
 ---

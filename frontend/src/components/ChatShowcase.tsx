@@ -4,6 +4,10 @@ import { useChat } from '../chat/chatContext'
 import { ArrowRightIcon } from './Icons'
 import ProductCard from './ProductCard'
 
+/** Glide only for shoppers who haven't asked their system to reduce motion. */
+const scrollBehavior = (): ScrollBehavior =>
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+
 const onProductPage = (pathname: string) => pathname.startsWith('/products/')
 
 /**
@@ -35,7 +39,7 @@ export default function ChatShowcase() {
     if (revealCount === 0) return
     requestAnimationFrame(() => {
       listRef.current?.scrollTo({ left: 0 })
-      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      sectionRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' })
     })
   }, [revealCount])
 
@@ -44,7 +48,7 @@ export default function ChatShowcase() {
   const count = showcase.products.length
   const scrollList = (direction: 1 | -1) => {
     const list = listRef.current
-    if (list) list.scrollBy({ left: direction * list.clientWidth * 0.8, behavior: 'smooth' })
+    if (list) list.scrollBy({ left: direction * list.clientWidth * 0.8, behavior: scrollBehavior() })
   }
 
   return (

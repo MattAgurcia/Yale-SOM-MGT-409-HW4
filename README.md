@@ -43,7 +43,7 @@ hw4/
 │       └── prompt.md      each agent's instructions, one "# " section per agent
 └── output/
     ├── harness.md         how the system works
-    ├── design.md          the design write-up
+    ├── design.md          what changed in the design, and why it helps people buy
     ├── usability.md       the Problem 9 usability improvements
     ├── app_check.html     the live app check, with screenshots
     ├── app_check_images/  the screenshots app_check.html links to
@@ -293,7 +293,7 @@ node --version
   reference for the finished system: the model fields in `models.py`, the
   tools and abilities, the safety rules, the audit trail, and the specs (models,
   loop limits, result caps, how to run it).
-- `output/design.md`: the design write-up.
+- `output/design.md`: what the Problem 10 redesign changed, and why each change should help customers stick around and buy.
 - `output/usability.md`: the four Problem 9 improvements, why they help, and
   where to see them in the app.
 - `output/app_check.html`: the live app check. Open it in a browser; its

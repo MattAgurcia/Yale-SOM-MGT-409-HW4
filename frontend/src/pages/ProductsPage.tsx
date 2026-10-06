@@ -125,7 +125,7 @@ function FilterPanel({ products, cats, filters: f, set, onFindSize }: PanelProps
       </fieldset>
 
       <fieldset className="filter">
-        <legend>Colour</legend>
+        <legend>Color</legend>
         <div className="swatches">
           {cats.colours.map((colour) => (
             <button
@@ -373,7 +373,7 @@ export default function ProductsPage() {
           {ready && shown.length > 0 && (
             <div className="product-grid">
               {shown.map((product, index) => (
-                <ProductCard key={product.product_id} product={product} index={index} />
+                <ProductCard key={product.product_id} product={product} index={index} showInfo />
               ))}
             </div>
           )}

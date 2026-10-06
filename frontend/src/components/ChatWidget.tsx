@@ -286,7 +286,7 @@ export default function ChatWidget() {
 
   // On a phone the panel covers the page, so close it when a card is opened.
   const closeIfFullScreen = () => {
-    if (window.matchMedia('(max-width: 560px)').matches) close()
+    if (window.matchMedia('(max-width: 600px)').matches) close() // the chat fills the screen at this width (styles.css)
   }
 
   async function send(event?: FormEvent, starter?: string) {

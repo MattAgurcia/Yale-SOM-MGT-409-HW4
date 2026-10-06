@@ -181,7 +181,7 @@ export default function ProductDetailPage() {
             <Purchase product={data} size={size} onFindSize={() => setSizeHelp(true)} />
 
             <div className="detail__block">
-              <h2 className="eyebrow">Colors</h2>
+              <h2 className="eyebrow">Color</h2>
               <p>
                 {data.colors.length > 0
                   ? data.colors.map(sentenceCase).join(', ')

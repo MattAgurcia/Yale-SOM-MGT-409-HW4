@@ -329,27 +329,17 @@ Per question:
 
 ---
 
-## Other ideas, for you to evaluate (not built)
+## Other ideas from Problem 9, and what became of them
 
-Ranked by how much they'd help shoppers for the effort. Happy to build any of
-these on your go-ahead.
+These were suggested alongside the four improvements above. Several were built
+in later problems:
 
-1. **Filters and sort on the Products page.** Garment type (normalising the
-   22 spellings), colour, price, and "in stock in my size". 102 cards in one
-   grid is a lot to scroll; this is the biggest everyday usability gain.
-2. **A size and fit helper.** "I'm 5'10", 170 lb, what size?" A small size
-   chart in the database plus a `size_advice` tool, so the chat can recommend
-   a size and then check stock in it.
-3. **"Notify me when it's back".** On a sold-out size, a logged-in shopper can
-   ask to be told when it returns. Store the request; show it on their
-   account.
-4. **Saved items (wishlist).** A heart on every card, saved to the account.
-   The assistant could then say "your saved Morse quarter-zip is down to 2 in
-   M".
-5. **A search box in the nav** with instant results, for shoppers who'd
-   rather type than chat.
-6. **Cart and checkout** (payment provider in test mode), or "reserve for
-   pickup at 57 Broadway". Bigger build, but it closes the loop from chat to
-   purchase.
-7. **A per-shopper chat rate limit**, to cap model spend if someone scripts
-   the chat.
+| Idea | Status |
+|---|---|
+| **Filters and sort on the Products page**: type, colour, price, "in stock in my size" | Built in Problem 10 (`harness.md` §8.5) |
+| **A size and fit helper**: a size chart in the database plus a `size_advice` tool | Built in Problem 10 (`harness.md` §8.3) |
+| **A cart**, with Add to cart on every card | Built in Problem 10. Online checkout isn't open; the cart page points shoppers to 57 Broadway |
+| **A search box** for shoppers who'd rather type than chat | Built in Problem 10, on the Products page (it filters as you type) |
+| **A per-shopper chat rate limit**, to cap model spend | Built in Problem 12 (`harness.md` §12.2) |
+| **"Notify me when it's back"** for a sold-out size | Not built |
+| **Saved items (a wishlist)**, which Dan could mention | Not built |
