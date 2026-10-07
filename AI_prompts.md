@@ -291,6 +291,16 @@ My prompt left out the output/design.md write-up this problem asks for (what cha
 
     It's accurate, but it can't be cut safely now
 
+11. Alright, I'm ready to start with the deployment of this to the website sandbox. Please create a folder in Documents/agurcia.org/sandbox assets (or something like that) to store all sandbox assets. Move any existing wizard assets that are elsewhere in here please, and any other sandbox assets that may be around.
+
+    For the decisions for me part:
+
+    1. Don't give it a passcode, but definitely add "Class project, not affiliated"
+    2. We're good to use the portkey for now, but eventually they'll turn it off. So make it easy for me to swap with like an anthropic API key in the future. Or maybe even an LLM. Not sure what I'm going to do long term
+    3. Resets is perfect; this is definitely just a demo
+    4. call it "swag-demo.agurcia.org"
+    5. We're good to deploy now
+
 **Notes:**
 
 After the first push, design.md was still a guess because my Problem 10 prompt never asked for it, so I asked about it and then had the whole project graded against the assignment pages to close any remaining gaps. That pass found a chat shelf that could mix results, a stale harness diagram, a long design.md and outdated screenshots, so I asked for those fixes and then a final check before submitting.
