@@ -303,6 +303,8 @@ My prompt left out the output/design.md write-up this problem asks for (what cha
 
 12. sorry I had to close my computer; please continue
 
+13. it's up
+
 **Notes:**
 
 After the first push, design.md was still a guess because my Problem 10 prompt never asked for it, so I asked about it and then had the whole project graded against the assignment pages to close any remaining gaps. That pass found a chat shelf that could mix results, a stale harness diagram, a long design.md and outdated screenshots, so I asked for those fixes and then a final check before submitting.
